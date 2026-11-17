@@ -5,7 +5,7 @@ import SwiftUI
 @main
 struct BYTEApp: App {
     var body: some Scene {
-        WindowsGroup {
+        WindowGroup {
             ContentView()
         }
     }
