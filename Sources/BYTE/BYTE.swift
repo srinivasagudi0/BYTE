@@ -11,14 +11,3 @@ struct BYTEApp: App {
     }
 }
 
-struct ContentView: View {
-    var body: some View {
-        ZStack {
-            Color.black
-
-            Text("Hello, BYTE!")
-                .font(.largeTitle)
-                .foregroundColor(.white)
-        }.frame(width: 600, height: 400)
-    }   
-}
