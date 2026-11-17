@@ -15,16 +15,19 @@ struct ContentView: View {
                     Circle()
                         .fill(Color.black)
                         .frame(width: 12, height: 12) // left eye
-                Circle()
-                    .fill(Color.black)
-                    .frame(width: 12, height: 12) // right eye
-                }.offset(x: positionX, y: 0) // full body
-                Button("Move Right") {
-                    positionX +=20
+                    Circle()
+                        .fill(Color.black)
+                        .frame(width: 12, height: 12) // right eye
                 }
-            }
-            
-        }.frame(width: 600, height: 400)
+            }.offset(x: positionX, y: 0) // full body
+            VStack(spacing: 20) {
+                Button("Move Left") {
+                    positionX -= 20
+                }
+                Button("Move Right") {
+                    positionX += 20
+                }
+        }}.frame(width: 600, height: 400)
         
     }
 }
