@@ -1,0 +1,2 @@
+# BYTE
+Lightweight Mac assistant
