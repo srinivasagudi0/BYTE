@@ -1,9 +1,12 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
+import SwiftUI
 
 @main
-struct BYTE {
-    static func main() {
-        print("Hello, world!")
+struct BYTEApp: App {
+    var body: some Scene {
+        WindowsGroup {
+            ContentView()
+        }
     }
 }
