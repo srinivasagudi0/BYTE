@@ -49,10 +49,7 @@ struct ContentView: View {
                 .fill(Color.cyan)
                 .frame(width: 100, height: 100)
 
-            HStack(spacing: 20) {
-                eye()
-                eye()
-            }
+            byteEyes
         }
         .contentShape(Circle())
     }

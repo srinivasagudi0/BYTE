@@ -1,10 +1,10 @@
 import SwiftUI
 import AppKit
 
-@main
+
 struct ByteApp: App {
     var body: some Scene {
-        windowGroup {
+        WindowGroup {
             ContentView()
                 .background(DesktopWindow())
         }
@@ -12,3 +12,14 @@ struct ByteApp: App {
     }
 }
 
+private var byteMouth: some View {
+    Smile()
+        .stroke(
+            Color.black,
+            style: StrokeStyle(
+                lineWidth: 2.5,
+                lineCap: .round
+            )
+        )
+        .frame(width: 18, height: 10)
+}
