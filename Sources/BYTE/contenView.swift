@@ -9,6 +9,8 @@ struct ContentView: View {
     // reactions
     @State private var isReacting = false
     @State private var isHappy = false
+    @State private var isShy = false
+    @State private var isPlayful = false
 
     let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
@@ -34,6 +36,10 @@ struct ContentView: View {
                     }
                 }
                 .offset(x: positionX, y: positionY)
+                .onTapGesture {
+                    petByte()
+                }
+                .scaleEffect(isReacting ? 1.2 : 1.0)
 
             }
         }
@@ -44,6 +50,8 @@ struct ContentView: View {
     }
 
     func wander() {
+        guard !isReacting else { return }
+
         withAnimation(.easeInOut(duration: 1.0)) {
             positionX = Double.random(in: -100...100)
             positionY = Double.random(in: -100...100)
@@ -57,10 +65,30 @@ struct ContentView: View {
 
         if reaction <= 45 {
             // is happy
+            isReacting = true
+            isHappy = true
+            isShy = false
+            isPlayful = false
         } else if reaction <= 75 {
-            // shy 
+            // shy
+            isReacting = true
+            isHappy = false
+            isShy = true
+            isPlayful = false
         } else {
             // playful
+            isReacting = true
+            isHappy = true
+            isPlayful = true
+            isShy = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation(.easeInOut(duration: 0.5)) {
+                isReacting = false
+                isHappy = false
+                isShy = false
+                isPlayful = false
+            }
         }
     }
 }
