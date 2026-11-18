@@ -62,6 +62,8 @@ struct ContentView: View {
             .fill(Color.black)
             .frame(width: width, height: height)
     }
+     
+    
 
     // MARK: - Movement
 
