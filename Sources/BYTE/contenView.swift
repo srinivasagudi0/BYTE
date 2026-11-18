@@ -31,37 +31,18 @@ struct ContentView: View {
                 }
                 .offset(x: positionX, y: positionY)
 
-                HStack(spacing: 20) {
-                    Button("Move Left") {
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            positionX -= 20
-                        }
-                    }
-
-                    Button("Move Right") {
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            positionX += 20
-                        }
-                    }
-                    Button("Move Up") {
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            positionY -= 20
-                        }
-                    }
-                    Button("Move Down") {
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            positionY += 20
-                        }
-                    }
-                }
             }
         }
         .frame(width: 600, height: 400)
         .onReceive(timer) { _ in
-            let randomValue = Double.random(in: -100...100)
-            withAnimation(.easeInOut(duration: 1.0)) {
-                positionX = randomValue
-            }
+            wander()
+        }
+    }
+
+    func wander() {
+        withAnimation(.easeInOut(duration: 1.0)) {
+            positionX = Double.random(in: -100...100)
+            positionY = Double.random(in: -100...100)
         }
     }
 }
