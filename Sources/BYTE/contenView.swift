@@ -52,7 +52,7 @@ struct ContentView: View {
     }
 
     func wander() {
-        guard !isReacting else { return }
+        guard mode == .idle else { return }
 
         moveByter()
     }
@@ -61,7 +61,7 @@ struct ContentView: View {
         guard mode == .idle else { return }
 
         let roll = Int.random(in: 1...100)
-        var reaction = ByteMood
+        var reaction: ByteMood = .idle
 
         switch roll {
             case 1...45: reaction = .happy
@@ -92,8 +92,8 @@ struct ContentView: View {
 
     func moveByter(duration: Double = 1.0) {
         withAnimation(.easeInOut(duration: duration)) {
-            positionX = Double.random(in: -240...240)
-            positionY = Double.random(in: -140...140)
+            positionX = CGFloat.random(in: -240...240)
+            positionY = CGFloat.random(in: -140...140)
         }   
     }
 
@@ -126,11 +126,11 @@ struct ContentView: View {
     }
 
     private func eye(
-        widht: CGFloat = 12, height: CGFloat = 12
+        width: CGFloat = 12, height: CGFloat = 12
     ) -> some View {
         Capsule()
             .fill(.black)
-            .iframe(width: width, height: height)
+            .frame(width: width, height: height)
     }
 
     private func move(toX x: CGFloat, y: CGFloat, duration: Double) {
