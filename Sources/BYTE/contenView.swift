@@ -6,6 +6,10 @@ struct ContentView: View {
     @State private var positionX = 0.0
     @State private var positionY = 0.0
 
+    // reactions
+    @State private var isReacting = false
+    @State private var isHappy = false
+
     let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -45,4 +49,19 @@ struct ContentView: View {
             positionY = Double.random(in: -100...100)
         }
     }
+
+    func petByte() {
+        guard !isReacting else { return }
+
+        let reaction = Int.random(in: 0...100)
+
+        if reaction <= 45 {
+            // is happy
+        } else if reaction <= 75 {
+            // shy 
+        } else {
+            // playful
+        }
+    }
 }
+
