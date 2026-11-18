@@ -23,10 +23,14 @@ struct ContentView: View {
         }.frame(width: 600, height: 400)
         VStack(spacing: 20) {
             Button("Move Left") {
-                positionX -= 20
+                withAnimation(.easeInOut(duration: 0.4)){
+                    positionX -= 20
+                }
             }
             Button("Move Right") {
-                positionX += 20
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    positionX += 20
+                }
             }
         }
     }
