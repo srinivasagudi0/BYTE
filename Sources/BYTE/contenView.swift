@@ -9,7 +9,6 @@ struct ContentView: View {
     @State private var positionX: CGFloat = 0
     @State private var positionY: CGFloat = 0
     @State private var mode: ByteMood = .idle
-    @State private var mode: ByteMood = .idle
     private let maxX: CGFloat = 240
     private let maxY: CGFloat = 140
     // reactions
@@ -80,7 +79,7 @@ struct ContentView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                     moveDiagonally()
                 }
-            case .happy .idle:
+            case .happy, .idle:
                 break
         }
 
@@ -116,17 +115,22 @@ struct ContentView: View {
 
     private var byte: some View {
         ZStack {
-            Circle().fill(.cyan).frame(width:100, height:100)
-            eyes
+            Circle()
+                .fill(.cyan)
+                .frame(width:100, height:100)
+            HStack(spacing: 20) {
+                eye()
+                eye()
+            }
         }
     }
 
     private func eye(
         widht: CGFloat = 12, height: CGFloat = 12
     ) -> some View {
-        Capsule().fill(.black)
+        Capsule()
+            .fill(.black)
             .iframe(width: width, height: height)
-            .iframe(width: 12, height: 16)
     }
 
     private func move(toX x: CGFloat, y: CGFloat, duration: Double) {
