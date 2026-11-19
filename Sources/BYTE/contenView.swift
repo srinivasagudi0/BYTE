@@ -21,6 +21,8 @@ struct ContentView: View {
     @State private var  isMoving = false
     @State private var positionY: CGFloat = 0
     @State private var mode: ByteMood = .idle
+    @State private var isJumping = false
+    @State private var jumpHeight: CGFloat = 0
     // @State private var action: ByteAction = .blinking
     @State private var isBreathing = false
     @State private var isBlinking = false
@@ -47,7 +49,7 @@ struct ContentView: View {
                     (mode == .happy || mode == .playful ? 0.85 : 1.0) 
                     * (isBreathing ? 1.05: 1.0)
                 )
-                .offset(x: positionX, y: positionY)
+                .offset(x: positionX, y: positionY + jumpHeight)
                 .onTapGesture {
                     petByte()
                 }
@@ -58,7 +60,11 @@ struct ContentView: View {
         .frame(width: 320, height: 260)
         .background(Color.clear)
         .onReceive(timer) { _ in
-            wander()
+            if Int.random(in: 1...3) == 3 {
+                wander()
+            } else {
+                jump()
+            }
         }
         .onReceive(blinkTimer) {_ in
             blinkWhileVisible()
@@ -324,6 +330,23 @@ struct ContentView: View {
             isBreathing = true
         }
     }
+
+    func jump() {
+        guard !isJumping else { return }
+        isJumping = true
+
+        withAnimation(.easeInOut(duration: 0.3)) {
+            jumpHeight = -20
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                jumpHeight = 0
+            }
+            isJumping = false
+        }
+
+    } 
 
     // private func performByte() {
     //     let action = ByteAction
