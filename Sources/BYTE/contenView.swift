@@ -9,10 +9,19 @@ private enum ByteMood: Equatable {
     case playful
 }
 
+// create pivate enum byte actions
+private enum ByteAction: Equatable {
+    case blinking
+    // like jumping
+    // sneaky or truoble making option
+}
+
 struct ContentView: View {
     @State private var positionX: CGFloat = 0
     @State private var positionY: CGFloat = 0
     @State private var mode: ByteMood = .idle
+    @State private var action: ByteAction = .blinking
+    @State private var isBlinking = false
 
     private let maxX: CGFloat = 100
     private let maxY: CGFloat = 70
@@ -21,7 +30,13 @@ struct ContentView: View {
         every: 2,
         on: .main,
         in: .common
-    ).autoconnect()
+    ).autoconnect() // move timer
+
+    private let blinkTimer = Timer.publish(
+        every: 1,
+        on: .main,
+        in: .common
+    ).autoconnect() // blink timer
 
     var body: some View {
         ZStack {
@@ -39,6 +54,9 @@ struct ContentView: View {
         .onReceive(timer) { _ in
             wander()
         }
+        .onReceive(blinkTimer) {_ in
+            blinkWhileVisible()
+        }
     }
 
     // MARK: - BYTE Appearance
@@ -46,25 +64,124 @@ struct ContentView: View {
     private var byte: some View {
         ZStack {
             Circle()
-                .fill(Color.cyan)
+                .fill(RadialGradient(
+                    colors: [
+                        Color(red: 0.79, green: 0.99, blue: 1),
+                        Color(red: 0.30, green: 0.80, blue: 0.90),
+                        Color(red: 0.19, green: 0.61, blue: 0.76)
+                    ],
+                    center: .topLeading,
+                    startRadius: 3,
+                    endRadius: 120
+                )) .frame(width: 100, height: 100)
                 .frame(width: 100, height: 100)
-
-            byteEyes
+                HStack(spacing: 46) {
+                    cheek
+                    cheek
+                } .offset(y: 11)
+                VStack(spacing: 3) {
+                    byteEyes
+                    byteMouth
+                } .offset(y: 3)
         }
         .contentShape(Circle())
     }
 
+    private var byteMouth: some View {
+        Group {
+            if mode == .shy {
+                Ellipse().fill(.black).frame(width: 5, height: 7)
+            } else {
+                FaceArc(bend: mode == .idle ? 0.65 : 1)
+                .stroke(.black, style: StrokeStyle(
+                lineWidth: 2.2, lineCap: .round
+                ))
+                .frame(width: 15, height: 8)
+            }
+        }
+        .frame(width: 20, height: 12)
+    }
+
+    private var cheek: some View {
+        Ellipse()
+            .fill(Color.pink)
+            .frame(width: 13, height: 7)
+    }
+
     private func eye(
-        width: CGFloat = 12,
-        height: CGFloat = 12
-    ) -> some View {
-        Capsule()
+            width: CGFloat = 10,
+            height: CGFloat = 12
+        ) -> some View {
+            Capsule()
             .fill(Color.black)
             .frame(width: width, height: height)
-    }
+            .overlay(alignment: .topLeading) {
+                if height >= 8 {
+                    Circle()
+                    .fill(.white)
+                    .frame(width: 3, height: 3)
+                    .padding(2)
+                }
+            }
+            .frame(width: 16, height: 16)
+        }
      
-    
+    @ViewBuilder
+    private var byteEyes: some View {
+        HStack(spacing: 20) {
+            switch mode {
+                case .idle:
+                    eye()
+                    eye()
+                case .happy: 
+                    closedEye()
+                    closedEye()
+                case .shy:
+                    eye(width:6, height: 14)
+                    eye(width: 6, height: 14) 
+                case .playful:
+                    closedEye()
+                    eye()
+                
+            }
+            
+        }
+    }
 
+    private var byteAction: some View {
+        HStack(spacing: 20){
+            switch action {
+                case .blinking:
+                    closedEye()
+                    closedEye()
+            }
+        }
+    }
+
+    private func closedEye() -> some View {
+        FaceArc(bend: -1)
+            .stroke(.black, style: StrokeStyle(
+                lineWidth: 2, lineCap: .round
+            ))
+                .frame(width: 12, height: 8)
+                .frame(width: 16, height: 16)
+    }
+
+    private struct FaceArc: Shape {
+        let bend: CGFloat
+        func path(in rect: CGRect) -> Path {
+            var path = Path()
+            path.move(to: CGPoint(x: rect.minX, y: rect.midY))
+            path.addQuadCurve(
+                to: CGPoint(x: rect.maxX, y: rect.midY),
+                control: CGPoint(
+                    x: rect.midX, y: rect.midY + rect.height * 0.8 * bend
+                )
+            )
+            return path
+            }
+        }
+ 
     // MARK: - Movement
 
     private func wander() {
@@ -72,6 +189,12 @@ struct ContentView: View {
 
         moveByter()
     }
+
+    private func blinkWhileVisible() {
+        return
+    }
+
+    
 
     private func moveByter(duration: Double = 1.0) {
         move(
@@ -142,6 +265,8 @@ struct ContentView: View {
         switch reaction {
         case .happy:
             break
+        
+        
 
         case .shy:
             moveDiagonally()
@@ -163,6 +288,13 @@ struct ContentView: View {
             withAnimation(.spring(duration: 0.35)) {
                 mode = .idle
             }
+        }
+    }
+
+    private func performByte() {
+        let action = ByteAction
+        switch action {
+            case .blinking: return  
         }
     }
 }
