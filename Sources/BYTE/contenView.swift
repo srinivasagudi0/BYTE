@@ -18,9 +18,11 @@ private enum ByteMood: Equatable {
 
 struct ContentView: View {
     @State private var positionX: CGFloat = 0
+    @State private var  isMoving = false
     @State private var positionY: CGFloat = 0
     @State private var mode: ByteMood = .idle
     // @State private var action: ByteAction = .blinking
+    @State private var isBreathing = false
     @State private var isBlinking = false
 
     private let maxX: CGFloat = 100
@@ -41,10 +43,10 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             byte
-                .offset(x: positionX, y: positionY)
                 .scaleEffect(
                     mode == .happy || mode == .playful ? 0.85 : 1.0
                 )
+                .offset(x: positionX, y: positionY)
                 .onTapGesture {
                     petByte()
                 }
@@ -53,6 +55,7 @@ struct ContentView: View {
         .background(Color.clear)
         .onReceive(timer) { _ in
             wander()
+            breathe()
         }
         .onReceive(blinkTimer) {_ in
             blinkWhileVisible()
@@ -104,8 +107,9 @@ struct ContentView: View {
 
     private var cheek: some View {
         Ellipse()
-            .fill(Color.pink)
-            .frame(width: 13, height: 7)
+            .fill(Color.pink.opacity(0.5))
+            .frame(width: 15, height: 8)
+            .blur(radius: 2)
     }
 
     private func eye(
@@ -184,12 +188,11 @@ struct ContentView: View {
             return path
             }
         }
- 
+
     // MARK: - Movement
 
     private func wander() {
-        guard mode == .idle else { return }
-
+        guard mode == .idle, !isMoving, !isBlinking, !isBreathing else { return }
         moveByter()
     }
 
@@ -238,21 +241,12 @@ struct ContentView: View {
         return target
     }
 
-    private func move(
-        toX x: CGFloat,
-        y: CGFloat,
-        duration: Double
-    ) {
-        withAnimation(.easeInOut(duration: duration)) {
-            positionX = min(maxX, max(-maxX, x))
-            positionY = min(maxY, max(-maxY, y))
-        }
-    }
+    
 
     // MARK: - Petting Reactions
 
     private func petByte() {
-        guard mode == .idle else { return }
+        guard mode == .idle, !isMoving, !isBlinking, !isBreathing else { return }
 
         let roll = Int.random(in: 1...100)
         let reaction: ByteMood
@@ -299,6 +293,35 @@ struct ContentView: View {
                 mode = .idle
             }
         }
+    }
+
+    private func move(
+        toX x: CGFloat,
+        y: CGFloat,
+        duration: Double
+    ) {
+        guard !isMoving else { return }
+        isMoving = true
+
+        withAnimation(.easeInOut(duration: duration)) {
+            positionX = min(maxX, max(-maxX, x))
+            positionY = min(maxY, max(-maxY, y))
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            isMoving = false
+        }
+    }
+
+    // make byte breathe 
+    func breathe() {
+        guard !isBreathing, !isMoving, !isBlinking else { return }
+        isBreathing = true
+        withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+            // scale the byte up and down
+            byte.scaleEffect(1.05)
+        }
+        isBreathing = false
     }
 
     // private func performByte() {
