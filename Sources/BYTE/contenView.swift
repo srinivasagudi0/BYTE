@@ -26,6 +26,7 @@ struct ContentView: View {
     // @State private var action: ByteAction = .blinking
     @State private var isBreathing = false
     @State private var isBlinking = false
+    @State private var isResting = false
 
     private let maxX: CGFloat = 100
     private let maxY: CGFloat = 70
@@ -73,7 +74,7 @@ struct ContentView: View {
 
     // MARK: - BYTE Appearance
     private func wander() {
-        guard mode == .idle, !isMoving, !isJumping else { return }
+        guard mode == .idle, !isMoving, !isJumping, !isResting else { return }
         moveByter()
     }
 
@@ -99,13 +100,13 @@ struct ContentView: View {
                     byteEyes
                     byteMouth
                 } .offset(y: 3)
-                if isJumping {
-                    jumpLines
-                        .transition(.opacity.combined(with: .scale))
-                }
+                jumpLines
+                    .opacity(isJumping ? 1 : 0)
+                    .scaleEffect(isJumping ? 1 : 0.7)
+                    .animation(.easeInOut(duration: 0.18), value: isJumping)
+                    .allowsHitTesting(false)
         }
         .contentShape(Circle())
-        .animation(.easeOut(duration: 0.15), value: isJumping)
     }
 
     private var byteMouth: some View {
@@ -259,7 +260,7 @@ struct ContentView: View {
     // MARK: - Petting Reactions
 
     private func petByte() {
-        guard mode == .idle, !isMoving, !isBlinking, !isJumping else { return }
+        guard mode == .idle, !isMoving, !isBlinking, !isJumping, !isResting else { return }
 
         let roll = Int.random(in: 1...100)
         let reaction: ByteMood
@@ -323,6 +324,11 @@ struct ContentView: View {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
             isMoving = false
+            isResting = true
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                isResting = false
+            }
         }
     }
 
@@ -355,8 +361,9 @@ struct ContentView: View {
     }
 
     func jump() {
-        guard !isJumping, !isMoving, mode == .idle else { return }
+        guard !isJumping, !isMoving, mode == .idle, !isResting else { return }
         isJumping = true
+
 
         withAnimation(.easeInOut(duration: 0.3)) {
             jumpHeight = -35
@@ -368,6 +375,11 @@ struct ContentView: View {
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 isJumping = false
+                isResting = true
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isResting = false
+                }
             }
         }
     } 
