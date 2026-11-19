@@ -44,18 +44,21 @@ struct ContentView: View {
         ZStack {
             byte
                 .scaleEffect(
-                    mode == .happy || mode == .playful ? 0.85 : 1.0
+                    (mode == .happy || mode == .playful ? 0.85 : 1.0) 
+                    * (isBreathing ? 1.05: 1.0)
                 )
                 .offset(x: positionX, y: positionY)
                 .onTapGesture {
                     petByte()
+                }
+                .onAppear {
+                    breathe()
                 }
         }
         .frame(width: 320, height: 260)
         .background(Color.clear)
         .onReceive(timer) { _ in
             wander()
-            breathe()
         }
         .onReceive(blinkTimer) {_ in
             blinkWhileVisible()
@@ -192,7 +195,7 @@ struct ContentView: View {
     // MARK: - Movement
 
     private func wander() {
-        guard mode == .idle, !isMoving, !isBlinking, !isBreathing else { return }
+        guard mode == .idle else { return }
         moveByter()
     }
 
@@ -246,7 +249,7 @@ struct ContentView: View {
     // MARK: - Petting Reactions
 
     private func petByte() {
-        guard mode == .idle, !isMoving, !isBlinking, !isBreathing else { return }
+        guard mode == .idle, !isMoving, !isBlinking else { return }
 
         let roll = Int.random(in: 1...100)
         let reaction: ByteMood
@@ -315,13 +318,11 @@ struct ContentView: View {
 
     // make byte breathe 
     func breathe() {
-        guard !isBreathing, !isMoving, !isBlinking else { return }
-        isBreathing = true
+        guard !isBreathing else { return }
         withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
             // scale the byte up and down
-            byte.scaleEffect(1.05)
+            isBreathing = true
         }
-        isBreathing = false
     }
 
     // private func performByte() {
