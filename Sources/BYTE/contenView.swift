@@ -128,29 +128,26 @@ struct ContentView: View {
      
     @ViewBuilder
     private var byteEyes: some View {
-        if isBlinking {
-            HStack(spacing: 20) {
-                closedEye()
-                closedEye()
-            }
-        }
         HStack(spacing: 20) {
-            switch mode {
-                case .idle:
-                    eye()
-                    eye()
-                case .happy: 
-                    closedEye()
-                    closedEye()
-                case .shy:
-                    eye(width:6, height: 14)
-                    eye(width: 6, height: 14) 
-                case .playful:
-                    closedEye()
-                    eye()
-                
+            if isBlinking {
+                closedEye()
+                closedEye()
+            } else {
+                switch mode {
+                    case .idle:
+                        eye()
+                        eye()
+                    case .happy:
+                        closedEye()
+                        closedEye()
+                    case .shy:
+                        eye(width: 8, height: 10)
+                        eye(width: 8, height: 10)
+                    case .playful:
+                        closedEye()
+                        eye()
+                }
             }
-            
         }
     }
 
@@ -167,9 +164,9 @@ struct ContentView: View {
     private func closedEye() -> some View {
         FaceArc(bend: -1)
             .stroke(.black, style: StrokeStyle(
-                lineWidth: 2, lineCap: .round
+                lineWidth: 2.5, lineCap: .round
             ))
-                .frame(width: 12, height: 8)
+                .frame(width: 12, height: 5)
                 .frame(width: 16, height: 16)
     }
 
