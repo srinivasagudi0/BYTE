@@ -72,6 +72,10 @@ struct ContentView: View {
     }
 
     // MARK: - BYTE Appearance
+    private func wander() {
+        guard mode == .idle, !isMoving, !isJumping else { return }
+        moveByter()
+    }
 
     private var byte: some View {
         ZStack {
@@ -95,8 +99,13 @@ struct ContentView: View {
                     byteEyes
                     byteMouth
                 } .offset(y: 3)
+                if isJumping {
+                    jumpLines
+                        .transition(.opacity.combined(with: .scale))
+                }
         }
         .contentShape(Circle())
+        .animation(.easeOut(duration: 0.15), value: isJumping)
     }
 
     private var byteMouth: some View {
@@ -200,11 +209,6 @@ struct ContentView: View {
 
     // MARK: - Movement
 
-    private func wander() {
-        guard mode == .idle else { return }
-        moveByter()
-    }
-
     private func blinkWhileVisible() {
         guard mode == .idle,!isBlinking else { return }
         guard Int.random(in: 1...3) == 3 else { return } // random chance not to blink
@@ -255,7 +259,7 @@ struct ContentView: View {
     // MARK: - Petting Reactions
 
     private func petByte() {
-        guard mode == .idle, !isMoving, !isBlinking else { return }
+        guard mode == .idle, !isMoving, !isBlinking, !isJumping else { return }
 
         let roll = Int.random(in: 1...100)
         let reaction: ByteMood
@@ -331,21 +335,41 @@ struct ContentView: View {
         }
     }
 
+    private var jumpLines: some View {
+        HStack(spacing: 110) {
+            motionLines
+                .rotationEffect(.degrees(-20))
+            motionLines
+                .rotationEffect(.degrees(20))
+        }
+    }
+
+    private var motionLines: some View {
+        VStack(spacing: 6) {
+            ForEach(0..<3, id: \.self) { _ in
+                Capsule()
+                    .fill(Color.cyan)
+                    .frame(width: 15, height: 3)
+            }
+        }
+    }
+
     func jump() {
-        guard !isJumping else { return }
+        guard !isJumping, !isMoving, mode == .idle else { return }
         isJumping = true
 
         withAnimation(.easeInOut(duration: 0.3)) {
-            jumpHeight = -20
+            jumpHeight = -35
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation(.easeInOut(duration: 0.3)) {
                 jumpHeight = 0
             }
-            isJumping = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                isJumping = false
+            }
         }
-
     } 
 
     // private func performByte() {
