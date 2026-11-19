@@ -10,17 +10,17 @@ private enum ByteMood: Equatable {
 }
 
 // create pivate enum byte actions
-private enum ByteAction: Equatable {
-    case blinking
-    // like jumping
-    // sneaky or truoble making option
-}
+// private enum ByteAction: Equatable {
+//     case blinking
+//     // like jumping
+//     // sneaky or truoble making option
+// }
 
 struct ContentView: View {
     @State private var positionX: CGFloat = 0
     @State private var positionY: CGFloat = 0
     @State private var mode: ByteMood = .idle
-    @State private var action: ByteAction = .blinking
+    // @State private var action: ByteAction = .blinking
     @State private var isBlinking = false
 
     private let maxX: CGFloat = 100
@@ -128,6 +128,12 @@ struct ContentView: View {
      
     @ViewBuilder
     private var byteEyes: some View {
+        if isBlinking {
+            HStack(spacing: 20) {
+                closedEye()
+                closedEye()
+            }
+        }
         HStack(spacing: 20) {
             switch mode {
                 case .idle:
@@ -148,15 +154,15 @@ struct ContentView: View {
         }
     }
 
-    private var byteAction: some View {
-        HStack(spacing: 20){
-            switch action {
-                case .blinking:
-                    closedEye()
-                    closedEye()
-            }
-        }
-    }
+    // private var byteAction: some View {
+    //     HStack(spacing: 20){
+    //         switch action {
+    //             case .blinking:
+    //                 closedEye()
+    //                 closedEye()
+    //         }
+    //     }
+    // }
 
     private func closedEye() -> some View {
         FaceArc(bend: -1)
@@ -191,7 +197,14 @@ struct ContentView: View {
     }
 
     private func blinkWhileVisible() {
-        return
+        guard mode == .idle,!isBlinking else { return }
+        guard Int.random(in: 1...3) == 3 else { return } // random chance not to blink
+
+        isBlinking = true
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            isBlinking = false
+        }
     }
 
     
@@ -291,10 +304,10 @@ struct ContentView: View {
         }
     }
 
-    private func performByte() {
-        let action = ByteAction
-        switch action {
-            case .blinking: return  
-        }
-    }
+    // private func performByte() {
+    //     let action = ByteAction
+    //     switch action {
+    //         case .blinking: return  
+    //     }
+    // }
 }
