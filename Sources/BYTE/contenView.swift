@@ -369,6 +369,27 @@ struct ContentView: View {
         }
     }
 
+    @ViewBuilder
+    private var accessoryArt: some View {
+        switch acessory {
+            case "Beanie":
+                ZStack(alignment: .top) {
+                    Capsule()
+                        .fill(.purple)
+                        .frame(width: 44, height: 27)
+                    Capsule()
+                        .fill(.indigo)
+                        .frame(width: 49, height: 9)
+                }
+            case "Crown":
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundColor(.yellow)
+            default:
+                EmptyView()
+        }
+    }
+
     // private var byteAction: some View {
     //     HStack(spacing: 20){
     //         switch action {
