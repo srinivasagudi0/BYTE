@@ -40,6 +40,12 @@ struct ContentView: View {
                 return [Color.pink.opacity(0.35), .pink, .purple]
             case "Mint":
                 return [Color.green.opacity(0.35), .mint, .teal]
+            case "Dusk":
+                return [
+                    Color(red: 0.82, green: 0.72, blue: 1.0),
+                    Color(red: 0.55, green: 0.40, blue: 0.90),
+                    Color(red: 0.35, green: 0.20, blue: 0.65)
+                ]
             default:
                 return [
                     Color(red: 0.79, green: 0.99, blue: 1),
@@ -92,6 +98,7 @@ struct ContentView: View {
                         Text("Ocean").tag("Ocean")
                         Text("Berry").tag("Berry")
                         Text("Mint").tag("Mint")
+                        Text("Dusk").tag("Dusk")
                     }
                     Divider()
 
