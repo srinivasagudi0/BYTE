@@ -234,6 +234,14 @@ struct ContentView: View {
                             .allowsHitTesting(false)
                     }
                 }
+        .overlay(alignment: .topTrailing) {
+            if mode == .sleeping {
+                DreamZzz()
+                    .padding(.top, 12)
+                    .padding(.trailing, 20)
+                    .allowsHitTesting(false)
+            }
+        }
     }
 
     private var byteMouth: some View {
@@ -593,6 +601,37 @@ struct ContentView: View {
                 }
         }
     }
+
+    private struct DreamZzz: View {
+
+        let dreams = ["⭐️", "🌙", "☁️", "💤"]
+        @State private var dream = "⭐️"
+        @State private var isFloating = false
+        var body: some View{
+            ZStack {
+                Circle()
+                    .fill(Color.indigo.opacity(0.5))
+                    .frame(width: 50, height: 50)
+                    
+
+                Text(dream)
+                    .font(.system(size: 20))
+
+            }
+            .padding(.trailing, 20)
+            .offset(y: isFloating ? -12 : 0)
+            .opacity(isFloating ? 0.15 : 0.9)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: false)) {
+                    isFloating = true   
+                }
+            }   
+            .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
+                dream = dreams.randomElement() ?? "⭐"
+            }
+    }
+    }
+
 
     private var pickUpGesture: some Gesture {
     DragGesture(minimumDistance: 8)
