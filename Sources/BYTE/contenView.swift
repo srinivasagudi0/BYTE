@@ -29,7 +29,7 @@ struct ContentView: View {
     @State private var isBlinking = false
     @State private var isResting = false
     @State private var lastInteractionTime = Date()
-    @State privarte var isSleeping = false
+    @State private var isSleeping = false
 
     private let maxX: CGFloat = 100
     private let maxY: CGFloat = 70
@@ -64,10 +64,12 @@ struct ContentView: View {
         .frame(width: 320, height: 260)
         .background(Color.clear)
         .onReceive(timer) { _ in
+            checkSleep()
+
             if Int.random(in: 1...3) == 3 {
-                wander()
-            } else {
                 jump()
+            } else {
+                wander()
             }
         }
         .onReceive(blinkTimer) {_ in
@@ -267,9 +269,16 @@ struct ContentView: View {
 
     private func petByte() {
         if isSleeping {
-            return //for now
+            isSleeping = false
+            lastInteractionTime = Date()
+
+            withAnimation(.spring(duration: 0.35)) {
+                mode = .idle
+            }
+            return
         }
         guard mode == .idle, !isMoving, !isBlinking, !isJumping, !isResting else { return }
+        lastInteractionTime = Date()
 
         let roll = Int.random(in: 1...100)
         let reaction: ByteMood
@@ -293,7 +302,8 @@ struct ContentView: View {
         case .happy:
             break
         
-        
+        case .sleeping:
+            break
 
         case .shy:
             moveDiagonally()
@@ -394,13 +404,12 @@ struct ContentView: View {
     } 
 
     private func checkSleep() {
-        let timeSinceLastInteraction = Date().timeIntervalSince(lastInteractionTime)
-        if timeSinceLastInteraction > 10 && !isSleeping {
+        guard mode == .idle, !isSleeping, !isMoving, !isJumping else { return }
+        guard Date().timeIntervalSince(lastInteractionTime) >= 10 else { return }
+
+        withAnimation(.easeInOut(duration: 0.4)) {
             isSleeping = true
             mode = .sleeping
-        } else if timeSinceLastInteraction <= 10 && isSleeping {
-            isSleeping = false
-            mode = .idle
         }
     }
 
