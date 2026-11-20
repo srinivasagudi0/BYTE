@@ -167,6 +167,13 @@ struct ContentView: View {
                     .allowsHitTesting(false)
             }
         }
+        .overlay(alignment: .topTrailing) {
+                    if mode == .happy {
+                        HeartPop()
+                            .padding(.top, 25)
+                            .allowsHitTesting(false)
+                    }
+                }
     }
 
     private var byteMouth: some View {
@@ -486,7 +493,24 @@ struct ContentView: View {
                     isFloating = true
                 }
             }
-        }   
+        }  
+    }
+
+    private struct HeartPop: View {
+        @State private var floating = false
+
+        var body: some View {
+            Image(systemName: "heart.fill")
+                .font(.system(size: 16))
+                .foregroundColor(.pink)
+                .offset(y: floating ? -25 : 0)
+                .opacity(floating ? 0 : 1)
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 0.8)) {
+                        floating = true
+                    }
+                }
+        }
     }
 
     // private func performByte() {
