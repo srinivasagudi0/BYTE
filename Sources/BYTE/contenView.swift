@@ -316,8 +316,8 @@ struct ContentView: View {
 
     private func moveByter(duration: Double = 1.0) {
         move(
-            toX: positionX + CGFloat.random(in: -45...45),
-            y: positionY + CGFloat.random(in: -35...35),
+            toX: positionX + CGFloat.random(in: -200...200),
+            y: positionY + CGFloat.random(in: -150...150),
             duration: duration
         )
     }
@@ -467,7 +467,7 @@ struct ContentView: View {
         isJumping = true
 
         withAnimation(.easeOut(duration: 0.3)) {
-            jumpHeight = -35
+            jumpHeight = -110
             jumpScaleX = 0.92
             jumpScaleY = 1.12
         }
