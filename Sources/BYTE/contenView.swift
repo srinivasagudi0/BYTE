@@ -37,7 +37,7 @@ struct ContentView: View {
 
     @State private var isDragging = false
     @State private var dragStart = CGSize.zero
-
+    @State private var isHiding = false
     @State private var isChasing = false
 
     @AppStorage("byte.palette") private var palette = "Ocean"
@@ -145,19 +145,58 @@ struct ContentView: View {
         .background(DesktopWindow(hitRegion: hitRegion, bodySize: bodySize).allowsHitTesting(false))
         .onReceive(timer) { _ in
             checkSleep()
-            guard !isRoamingPaused, !isDragging else { return }
+            guard !isRoamingPaused, !isDragging, !isHiding else { return }
 
-            let roamChance = Int.random(in: 1...3)
+            let roamChance = Int.random(in: 1...10)
             if roamChance == 1 {
-                wander()
+                chaseCursor()
             } else if roamChance == 2 {
                 jump()
+            } else if roamChance == 3 {
+                hideAndPeek()
             } else {
-                chaseCursor()
+                wander()
             }
         }
         .onReceive(blinkTimer) {_ in
             blinkWhileVisible()
+        }
+    }
+
+    private func hideAndPeek() {
+        guard mode == .idle,
+            !isMoving,
+            !isDragging,
+            !isJumping,
+            !isSleeping,
+            !isResting,
+            !isHiding else { return }
+
+        isHiding = true
+
+        let oldX = positionX
+        let oldY = positionY
+
+        let side: CGFloat = Bool.random() ? 1 : -1
+        let edgeX = side * maxX
+
+        // Run toward the edge
+        move(toX: edgeX, y: oldY, duration: 0.8)
+
+        // Peek slightly inward
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                positionX = edgeX - side * 25
+            }
+
+            // Wait, then return
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                move(toX: oldX, y: oldY, duration: 0.8)
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+                    isHiding = false
+                }
+            }
         }
     }
 
@@ -194,7 +233,7 @@ struct ContentView: View {
 
     // MARK: - BYTE Appearance
     private func wander() {
-        guard mode == .idle, !isMoving, !isJumping, !isResting, !isSleeping else { return }
+        guard mode == .idle, !isMoving, !isJumping, !isResting, !isSleeping, !isHiding else { return }
         moveByter()
     }
 
@@ -515,7 +554,7 @@ struct ContentView: View {
     }
 
     func jump() {
-        guard !isJumping, !isMoving, mode == .idle, !isResting, !isSleeping else { return }
+        guard !isJumping, !isMoving, mode == .idle, !isResting, !isSleeping, !isHiding else { return }
         isJumping = true
 
         withAnimation(.easeOut(duration: 0.3)) {
@@ -638,7 +677,7 @@ struct ContentView: View {
     }
 
     private func chaseCursor() {
-        guard !isMoving, !isDragging, !isJumping, !isSleeping, !isResting, mode == .idle else { return }
+        guard !isMoving, !isDragging, !isJumping, !isSleeping, !isResting, mode == .idle, !isHiding else { return }
         guard let screen = NSScreen.main else { return }
 
         let mouse = NSEvent.mouseLocation
