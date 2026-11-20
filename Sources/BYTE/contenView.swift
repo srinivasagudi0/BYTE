@@ -112,6 +112,14 @@ struct ContentView: View {
                     .allowsHitTesting(false)
         }
         .contentShape(Circle())
+        .overlay(alignment: .topTrailing) {
+            if mode == .sleeping {
+                SleepZzz()
+                    .padding(.top, 12)
+                    .padding(.trailing, 20)
+                    .allowsHitTesting(false)
+            }
+        }
     }
 
     private var byteMouth: some View {
@@ -411,6 +419,22 @@ struct ContentView: View {
             isSleeping = true
             mode = .sleeping
         }
+    }
+
+    private struct SleepZzz: View {
+        @State private var isFloating = false
+        var body: some View{
+            Text("Zzz")
+            .font(.system(size: 15, weight:  .bold, design: .rounded))
+            .foregroundColor(Color.indigo)
+            .offset(y: isFloating ? -12 : 0)
+            .opacity(isFloating ? 0.15 : 0.9)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: false)) {
+                    isFloating = true
+                }
+            }
+        }   
     }
 
     // private func performByte() {
