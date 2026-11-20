@@ -31,6 +31,8 @@ struct ContentView: View {
     @State private var lastInteractionTime = Date()
     @State private var isSleeping = false
     @State private var isRoamingPaused = false
+    @State private var jumpScaleX: CGFloat = 1
+    @State private var jumpScaleY: CGFloat = 1 
 
     @AppStorage("byte.palette") private var palette = "Ocean"
 
@@ -76,6 +78,10 @@ struct ContentView: View {
                 .scaleEffect(
                     (mode == .happy || mode == .playful ? 0.85 : 1.0) 
                     * (isBreathing ? 1.05: 1.0)
+                )
+                .scaleEffect(
+                    x: jumpScaleX,
+                    y: jumpScaleY
                 )
                 .offset(x: positionX, y: positionY + jumpHeight)
                 .onTapGesture {
@@ -445,16 +451,37 @@ struct ContentView: View {
         guard !isJumping, !isMoving, mode == .idle, !isResting, !isSleeping else { return }
         isJumping = true
 
-
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(.easeOut(duration: 0.3)) {
             jumpHeight = -35
+            jumpScaleX = 0.92
+            jumpScaleY = 1.12
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.easeInOut(duration: 0.3)) {
+
+            // Falling
+            withAnimation(.easeIn(duration: 0.3)) {
                 jumpHeight = 0
+                jumpScaleX = 1
+                jumpScaleY = 1
             }
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+
+                // Landing: wider and shorter
+                withAnimation(.easeOut(duration: 0.1)) {
+                    jumpScaleX = 1.15
+                    jumpScaleY = 0.85
+                }
+
+                // Recover
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation(.spring(duration: 0.25)) {
+                        jumpScaleX = 1
+                        jumpScaleY = 1
+                    }
+                }
+
                 isJumping = false
                 isResting = true
 
@@ -463,7 +490,7 @@ struct ContentView: View {
                 }
             }
         }
-    } 
+    }
 
     private func checkSleep() {
         guard Date().timeIntervalSince(lastInteractionTime) >= 30 else { return }
