@@ -32,6 +32,23 @@ struct ContentView: View {
     @State private var isSleeping = false
     @State private var isRoamingPaused = false
 
+    @AppStorage("byte.palette") private var palette = "Ocean"
+
+    private var bodyColors: [Color] {
+        switch palette {
+            case "Berry":
+                return [Color.pink.opacity(0.35), .pink, .purple]
+            case "Mint":
+                return [Color.green.opacity(0.35), .mint, .teal]
+            default:
+                return [
+                    Color(red: 0.79, green: 0.99, blue: 1),
+                    Color(red: 0.30, green: 0.80, blue: 0.90),
+                    Color(red: 0.19, green: 0.61, blue: 0.76)
+                ]
+        }
+    }
+
     private let maxX: CGFloat = 100
     private let maxY: CGFloat = 70
 
@@ -70,6 +87,11 @@ struct ContentView: View {
                     
                     Button(isRoamingPaused ? "Resume Roaming" : "Pause Roaming") {
                         isRoamingPaused.toggle()
+                    }
+                    Picker("Color", selection: $palette) {
+                        Text("Ocean").tag("Ocean")
+                        Text("Berry").tag("Berry")
+                        Text("Mint").tag("Mint")
                     }
                     Divider()
 
@@ -433,7 +455,7 @@ struct ContentView: View {
     } 
 
     private func checkSleep() {
-        guard Date().timeIntervalSince(lastInteractionTime) >= 10 else { return }
+        guard Date().timeIntervalSince(lastInteractionTime) >= 30 else { return }
 
         fallAsleep()
     }
