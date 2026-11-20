@@ -57,8 +57,13 @@ struct ContentView: View {
         }
     }
 
-    private let maxX: CGFloat = 100
-    private let maxY: CGFloat = 70
+    private var maxX: CGFloat {
+        max(0, (NSScreen.main?.visibleFrame.width ?? 1000) / 2 - 60)
+    }
+
+    private var maxY: CGFloat {
+        max(0, (NSScreen.main?.visibleFrame.height ?? 700) / 2 - 60)
+    }
 
     private let timer = Timer.publish(
         every: 2,
@@ -126,7 +131,7 @@ struct ContentView: View {
                     breathe()
                 }
         }
-        .frame(width: 320, height: 260)
+        .frame(width: NSScreen.main?.frame.width ?? 1440, height: NSScreen.main?.frame.height ?? 900)
         .background(Color.clear)
         .onReceive(timer) { _ in
             checkSleep()
@@ -557,3 +562,4 @@ struct ContentView: View {
     //     }
     // }
 }
+
