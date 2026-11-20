@@ -18,9 +18,9 @@ private enum ByteMood: Equatable {
 // }
 
 struct ContentView: View {
-    @State private var positionX: CGFloat = 0
+    // @State private var positionX: CGFloat = 0
     @State private var  isMoving = false
-    @State private var positionY: CGFloat = 0
+    // @State private var positionY: CGFloat = 0
     @State private var mode: ByteMood = .idle
     @State private var isJumping = false
     @State private var jumpHeight: CGFloat = 0
@@ -65,6 +65,9 @@ struct ContentView: View {
         max(0, (NSScreen.main?.visibleFrame.height ?? 700) / 2 - 60)
     }
 
+    @State private var positionX: CGFloat = 0
+    @State private var positionY: CGFloat = 0
+
     private let timer = Timer.publish(
         every: 2,
         on: .main,
@@ -80,6 +83,8 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             byte
+                .frame(width: 100, height: 100)
+                .background(Color.red)
                 .scaleEffect(
                     (mode == .happy || mode == .playful ? 0.85 : 1.0) 
                     * (isBreathing ? 1.05: 1.0)
@@ -131,7 +136,8 @@ struct ContentView: View {
                     breathe()
                 }
         }
-        .frame(width: NSScreen.main?.frame.width ?? 1440, height: NSScreen.main?.frame.height ?? 900)
+        // .frame(width: NSScreen.main?.frame.width ?? 1440, height: NSScreen.main?.frame.height ?? 900)
+        .frame(width: 320, height: 320)
         .background(Color.clear)
         .onReceive(timer) { _ in
             checkSleep()

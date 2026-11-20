@@ -13,31 +13,24 @@ struct DesktopWindow: NSViewRepresentable {
 
 private final class WindowConfigurator: NSView {
 
-    override func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
+   override func viewDidMoveToWindow() {
+    super.viewDidMoveToWindow()
 
-        guard let window = self.window else { return }
+    guard let window = self.window else { return }
 
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.hasShadow = false
-        window.level = .floating
+    window.styleMask = [.borderless]
+    window.setFrame(NSScreen.main?.frame ?? window.frame, display: true)
 
-        window.styleMask.insert(.fullSizeContentView)
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
+    window.isOpaque = false
+    window.backgroundColor = .clear
+    window.hasShadow = false
+    window.level = .floating
 
-        window.standardWindowButton(.closeButton)?.isHidden = true
-        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        window.standardWindowButton(.zoomButton)?.isHidden = true
-        window.styleMask = [.borderless]
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.hasShadow = false
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
+    window.collectionBehavior = [
+        .canJoinAllSpaces,
+        .fullScreenAuxiliary
+    ]
 
-        window.contentView?.wantsLayer = true
-        window.contentView?.layer?.backgroundColor = NSColor.clear.cgColor
+    window.ignoresMouseEvents = false
     }
 }
