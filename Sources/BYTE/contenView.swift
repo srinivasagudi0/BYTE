@@ -1,4 +1,4 @@
-
+import AppKit
 import SwiftUI
 import Combine
 
@@ -56,6 +56,20 @@ struct ContentView: View {
                 .offset(x: positionX, y: positionY + jumpHeight)
                 .onTapGesture {
                     petByte()
+                }
+                .contextMenu {
+                    if mode == .sleeping {
+                        Button("Wake Up") { petByte() }
+                    } else {
+                        Button("Sleep Now") { fallAsleep() }
+                            .disabled(mode != .idle || isMoving || isJumping )
+                    }
+
+                    Divider()
+
+                    Button("QUIT BYTE") {
+                        NSApplication.shared.terminate(nil)
+                    }
                 }
                 .onAppear {
                     breathe()
@@ -412,8 +426,13 @@ struct ContentView: View {
     } 
 
     private func checkSleep() {
-        guard mode == .idle, !isSleeping, !isMoving, !isJumping else { return }
         guard Date().timeIntervalSince(lastInteractionTime) >= 10 else { return }
+
+        fallAsleep()
+    }
+
+    private func fallAsleep() {
+        guard mode == .idle, !isSleeping, !isMoving, !isJumping else { return }
 
         withAnimation(.easeInOut(duration: 0.4)) {
             isSleeping = true
