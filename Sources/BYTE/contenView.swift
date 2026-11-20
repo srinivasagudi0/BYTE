@@ -18,6 +18,7 @@ private enum ByteMood: Equatable {
 // }
 
 struct ContentView: View {
+    private let bodySize: CGFloat = 100
     // @State private var positionX: CGFloat = 0
     @State private var  isMoving = false
     // @State private var positionY: CGFloat = 0
@@ -58,15 +59,20 @@ struct ContentView: View {
     }
 
     private var maxX: CGFloat {
-        max(0, (NSScreen.main?.visibleFrame.width ?? 1000) / 2 - 60)
+        // Keep the 100-point pet (including its largest scale) inside the
+        // full-screen window. Positions are centered around the window.
+        max(0, (NSScreen.main?.frame.width ?? 1000) / 2 - 65)
     }
 
     private var maxY: CGFloat {
-        max(0, (NSScreen.main?.visibleFrame.height ?? 700) / 2 - 60)
+        // Leave room for BYTE's 110-point jump so it cannot leave the top
+        // edge while jumping from its highest roaming position.
+        max(0, (NSScreen.main?.frame.height ?? 700) / 2 - 170)
     }
 
     @State private var positionX: CGFloat = 0
     @State private var positionY: CGFloat = 0
+    @State private var hitRegion = DesktopWindow.HitRegion()
 
     private let timer = Timer.publish(
         every: 2,
@@ -83,16 +89,9 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             byte
-                .frame(width: 100, height: 100)
-                .scaleEffect(
-                    (mode == .happy || mode == .playful ? 0.85 : 1.0) 
-                    * (isBreathing ? 1.05: 1.0)
-                )
-                .scaleEffect(
-                    x: jumpScaleX,
-                    y: jumpScaleY
-                )
-                .offset(x: positionX, y: positionY + jumpHeight)
+                .frame(width: bodySize, height: bodySize)
+                .modifier(bodyTransform)
+                .modifier(motionTransform)
                 .gesture(
                     TapGesture(count: 2) 
                         .exclusively(before: TapGesture(count: 1))
@@ -135,10 +134,8 @@ struct ContentView: View {
                     breathe()
                 }
         }
-        // The window is full-screen; the pet moves relative to its center.
-        // Keep the root transparent so only BYTE participates in hit-testing.
-        .frame(width: 320, height: 260)
-        .background(Color.clear)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(DesktopWindow(hitRegion: hitRegion, bodySize: bodySize).allowsHitTesting(false))
         .onReceive(timer) { _ in
             checkSleep()
             guard !isRoamingPaused else { return }
@@ -151,6 +148,23 @@ struct ContentView: View {
         }
         .onReceive(blinkTimer) {_ in
             blinkWhileVisible()
+        }
+    }
+
+    private var bodyTransform: ByteTransform {
+        let scale = (mode == .happy || mode == .playful ? 0.85 : 1.0) * (isBreathing ? 1.05 : 1.0)
+        return ByteTransform(scale: CGSize(width: scale, height: scale)) { _, scale in
+            hitRegion.bodyScale = scale.width
+        }
+    }
+
+    private var motionTransform: ByteTransform {
+        ByteTransform(
+            offset: CGSize(width: positionX, height: positionY + jumpHeight),
+            scale: CGSize(width: jumpScaleX, height: jumpScaleY)
+        ) { offset, scale in
+            hitRegion.offset = offset
+            hitRegion.jumpScale = scale
         }
     }
 
