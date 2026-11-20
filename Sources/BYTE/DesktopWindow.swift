@@ -26,7 +26,17 @@ private final class WindowConfigurator: NSView {
 
             self.didConfigureWindow = true
             window.styleMask = [.borderless]
-            window.setFrame(window.screen?.frame ?? NSScreen.main?.frame ?? window.frame, display: true)
+            let screen = NSScreen.main?.visibleFrame ?? .zero
+
+            window.setFrame(
+                NSRect(
+                    x: screen.midX - 160,
+                    y: screen.midY - 130,
+                    width: 320,
+                    height: 260
+                ),
+                display: true
+            )
 
             window.isOpaque = false
             window.backgroundColor = .clear

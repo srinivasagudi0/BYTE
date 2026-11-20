@@ -137,7 +137,7 @@ struct ContentView: View {
         }
         // The window is full-screen; the pet moves relative to its center.
         // Keep the root transparent so only BYTE participates in hit-testing.
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(width: 320, height: 260)
         .background(Color.clear)
         .onReceive(timer) { _ in
             checkSleep()
