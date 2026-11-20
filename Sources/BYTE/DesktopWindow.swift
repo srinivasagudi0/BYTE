@@ -12,25 +12,33 @@ struct DesktopWindow: NSViewRepresentable {
 }
 
 private final class WindowConfigurator: NSView {
+    private var didConfigureWindow = false
 
-   override func viewDidMoveToWindow() {
+    override func viewDidMoveToWindow() {
     super.viewDidMoveToWindow()
 
-    guard let window = self.window else { return }
+        guard !didConfigureWindow else { return }
 
-    window.styleMask = [.borderless]
-    window.setFrame(NSScreen.main?.frame ?? window.frame, display: true)
+        // SwiftUI can attach this view before the hosting window has finished
+        // being installed. Configure it on the next main-run-loop turn.
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let window = self.window, !self.didConfigureWindow else { return }
 
-    window.isOpaque = false
-    window.backgroundColor = .clear
-    window.hasShadow = false
-    window.level = .floating
+            self.didConfigureWindow = true
+            window.styleMask = [.borderless]
+            window.setFrame(window.screen?.frame ?? NSScreen.main?.frame ?? window.frame, display: true)
 
-    window.collectionBehavior = [
-        .canJoinAllSpaces,
-        .fullScreenAuxiliary
-    ]
+            window.isOpaque = false
+            window.backgroundColor = .clear
+            window.hasShadow = false
+            window.level = .floating
 
-    window.ignoresMouseEvents = false
+            window.collectionBehavior = [
+                .canJoinAllSpaces,
+                .fullScreenAuxiliary
+            ]
+
+            window.ignoresMouseEvents = false
+        }
     }
 }

@@ -84,7 +84,6 @@ struct ContentView: View {
         ZStack {
             byte
                 .frame(width: 100, height: 100)
-                .background(Color.red)
                 .scaleEffect(
                     (mode == .happy || mode == .playful ? 0.85 : 1.0) 
                     * (isBreathing ? 1.05: 1.0)
@@ -136,8 +135,9 @@ struct ContentView: View {
                     breathe()
                 }
         }
-        // .frame(width: NSScreen.main?.frame.width ?? 1440, height: NSScreen.main?.frame.height ?? 900)
-        .frame(width: 320, height: 320)
+        // The window is full-screen; the pet moves relative to its center.
+        // Keep the root transparent so only BYTE participates in hit-testing.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.clear)
         .onReceive(timer) { _ in
             checkSleep()
