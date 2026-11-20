@@ -35,6 +35,9 @@ struct ContentView: View {
     @State private var jumpScaleX: CGFloat = 1
     @State private var jumpScaleY: CGFloat = 1 
 
+    @State private var isDragging = false
+    @State private var dragStart = CGSize.zero
+
     @AppStorage("byte.palette") private var palette = "Ocean"
 
     private var bodyColors: [Color] {
@@ -105,6 +108,7 @@ struct ContentView: View {
 
                         }
                 )
+                .simultaneousGesture(pickUpGesture)
                 .contextMenu {
                     if mode == .sleeping {
                         Button("Wake Up") { petByte() }
@@ -138,7 +142,7 @@ struct ContentView: View {
         .background(DesktopWindow(hitRegion: hitRegion, bodySize: bodySize).allowsHitTesting(false))
         .onReceive(timer) { _ in
             checkSleep()
-            guard !isRoamingPaused else { return }
+            guard !isRoamingPaused, !isDragging else { return }
 
             if Int.random(in: 1...3) == 3 {
                 jump()
@@ -572,6 +576,23 @@ struct ContentView: View {
                         floating = true
                     }
                 }
+        }
+    }
+
+    private var pickUpGesture: some Gesture {
+        DragGesture(minimumDistance: 8)
+            .onChnged { value in
+                guard !isDragging else { return }
+                isDragging = true
+                dragStart = CGSize(width: positionX, height: positionY)
+            }
+
+            positionX = min(maxX, max(-maxX, dragStart.width + value.translation.width))
+            positionY = min(maxY, max(-maxY, dragStart.height + value.translation.height))
+        }
+        .onEnded { _ in 
+            isDragging = false
+            lastInteractionTime = Date()
         }
     }
 
