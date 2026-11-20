@@ -421,7 +421,7 @@ struct ContentView: View {
         VStack(spacing: 6) {
             ForEach(0..<3, id: \.self) { _ in
                 Capsule()
-                    .fill(Color.cyan)
+                    .fill(bodyColors.last ?? .black)
                     .frame(width: 15, height: 3)
             }
         }
