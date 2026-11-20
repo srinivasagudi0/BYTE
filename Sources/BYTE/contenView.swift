@@ -38,6 +38,8 @@ struct ContentView: View {
     @State private var isDragging = false
     @State private var dragStart = CGSize.zero
 
+    @State private var isChasing = false
+
     @AppStorage("byte.palette") private var palette = "Ocean"
 
     private var bodyColors: [Color] {
@@ -145,10 +147,13 @@ struct ContentView: View {
             checkSleep()
             guard !isRoamingPaused, !isDragging else { return }
 
-            if Int.random(in: 1...3) == 3 {
+            let roamChance = Int.random(in: 1...3)
+            if roamChance == 1 {
+                wander()
+            } else if roamChance == 2 {
                 jump()
             } else {
-                wander()
+                chaseCursor()
             }
         }
         .onReceive(blinkTimer) {_ in
@@ -632,6 +637,34 @@ struct ContentView: View {
     }
     }
 
+    private func chaseCursor() {
+        guard !isMoving, !isDragging, !isJumping, !isSleeping, !isResting, mode == .idle else { return }
+        guard let screen = NSScreen.main else { return }
+
+        let mouse = NSEvent.mouseLocation
+        let center = screen.frame
+
+        let targetX = mouse.x - center.midX
+        let targetY = center.midY - mouse.y
+
+        let distance = hypot(targetX - positionX, targetY - positionY) // chatgpt suggested this change
+
+        guard distance > 80 else { return }
+
+        move(
+            toX: targetX,
+            y: targetY,
+            duration: 0.5
+        )
+
+
+
+
+
+
+
+
+    }
 
     private var pickUpGesture: some Gesture {
     DragGesture(minimumDistance: 8)
