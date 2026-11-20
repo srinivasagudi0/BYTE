@@ -41,6 +41,7 @@ struct ContentView: View {
     @State private var isChasing = false
 
     @AppStorage("byte.palette") private var palette = "Ocean"
+    @AppStorage("byte.acessory") private var acessory = "None"
 
     private var bodyColors: [Color] {
         switch palette {
@@ -95,6 +96,11 @@ struct ContentView: View {
         ZStack {
             byte
                 .frame(width: bodySize, height: bodySize)
+                .overlay(alignment: .top) {
+                    accessoryArt
+                        .offset(y: -13)
+                        .allowsHitTesting(false)
+                }
                 .modifier(bodyTransform)
                 .modifier(motionTransform)
                 .scaleEffect(x: isDragging ? 1.05 : 1, y: isDragging ? 1.05 : 1)
@@ -130,6 +136,13 @@ struct ContentView: View {
                         Text("Berry").tag("Berry")
                         Text("Mint").tag("Mint")
                         Text("Dusk").tag("Dusk")
+                    }
+                    Divider()
+
+                    Picker("Acessory", selection: $acessory) {
+                        Text("None").tag("None")
+                        Text("Beanie").tag("Hat")
+                        Text("Crown").tag("Crown")
                     }
                     Divider()
 
