@@ -130,15 +130,12 @@ struct ContentView: View {
         ZStack {
             Circle()
                 .fill(RadialGradient(
-                    colors: [
-                        Color(red: 0.79, green: 0.99, blue: 1),
-                        Color(red: 0.30, green: 0.80, blue: 0.90),
-                        Color(red: 0.19, green: 0.61, blue: 0.76)
-                    ],
+                    colors: bodyColors,
                     center: .topLeading,
                     startRadius: 3,
                     endRadius: 120
-                )) .frame(width: 100, height: 100)
+                ))
+                 .frame(width: 100, height: 100)
                 .frame(width: 100, height: 100)
                 HStack(spacing: 46) {
                     cheek
