@@ -30,6 +30,7 @@ struct ContentView: View {
     @State private var isResting = false
     @State private var lastInteractionTime = Date()
     @State private var isSleeping = false
+    @State private var isRoamingPaused = false
 
     private let maxX: CGFloat = 100
     private let maxY: CGFloat = 70
@@ -66,6 +67,11 @@ struct ContentView: View {
                     }
 
                     Divider()
+                    
+                    Button(isRoamingPaused ? "Resume Roaming" : "Pause Roaming") {
+                        isRoamingPaused.toggle()
+                    }
+                    Divider()
 
                     Button("QUIT BYTE") {
                         NSApplication.shared.terminate(nil)
@@ -79,6 +85,7 @@ struct ContentView: View {
         .background(Color.clear)
         .onReceive(timer) { _ in
             checkSleep()
+            guard !isRoamingPaused else { return }
 
             if Int.random(in: 1...3) == 3 {
                 jump()
