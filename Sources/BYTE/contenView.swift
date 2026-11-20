@@ -580,22 +580,31 @@ struct ContentView: View {
     }
 
     private var pickUpGesture: some Gesture {
-        DragGesture(minimumDistance: 8)
-            .onChnged { value in
-                guard !isDragging else { return }
+    DragGesture(minimumDistance: 8)
+        .onChanged { value in
+            if !isDragging {
+                guard !isMoving, !isJumping else { return }
+
                 isDragging = true
-                dragStart = CGSize(width: positionX, height: positionY)
+                dragStart = CGSize(
+                    width: positionX,
+                    height: positionY
+                )
             }
 
-            positionX = min(maxX, max(-maxX, dragStart.width + value.translation.width))
-            positionY = min(maxY, max(-maxY, dragStart.height + value.translation.height))
+            positionX = min(maxX, max(-maxX,
+                dragStart.width + value.translation.width
+            ))
+
+            positionY = min(maxY, max(-maxY,
+                dragStart.height + value.translation.height
+            ))
         }
-        .onEnded { _ in 
+        .onEnded { _ in
             isDragging = false
             lastInteractionTime = Date()
         }
     }
-
     // private func performByte() {
     //     let action = ByteAction
     //     switch action {
