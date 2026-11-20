@@ -84,9 +84,19 @@ struct ContentView: View {
                     y: jumpScaleY
                 )
                 .offset(x: positionX, y: positionY + jumpHeight)
-                .onTapGesture {
-                    petByte()
-                }
+                .gesture(
+                    TapGesture(count: 2) 
+                        .exclusively(before: TapGesture(count: 1))
+                        .onEnded { result in 
+                            switch result {
+                                case .first(_):
+                                    jump()
+                                case .second(_):
+                                    petByte()
+                            }
+
+                        }
+                )
                 .contextMenu {
                     if mode == .sleeping {
                         Button("Wake Up") { petByte() }
@@ -345,7 +355,7 @@ struct ContentView: View {
             }
             return
         }
-        guard mode == .idle, !isMoving, !isBlinking, !isJumping, !isResting else { return }
+        guard mode == .idle, !isMoving, !isBlinking, !isJumping else { return }
         lastInteractionTime = Date()
 
         let roll = Int.random(in: 1...100)
