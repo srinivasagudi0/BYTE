@@ -141,7 +141,7 @@ struct ContentView: View {
 
                     Picker("Acessory", selection: $acessory) {
                         Text("None").tag("None")
-                        Text("Beanie").tag("Hat")
+                        Text("Beanie").tag("Beanie")
                         Text("Crown").tag("Crown")
                     }
                     Divider()
@@ -373,7 +373,7 @@ struct ContentView: View {
     private var accessoryArt: some View {
         switch acessory {
             case "Beanie":
-                ZStack(alignment: .top) {
+                ZStack(alignment: .bottom) {
                     Capsule()
                         .fill(.purple)
                         .frame(width: 44, height: 27)
