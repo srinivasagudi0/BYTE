@@ -7,6 +7,7 @@ private enum ByteMood: Equatable {
     case happy
     case shy
     case playful
+    case sleeping
 }
 
 // create pivate enum byte actions
@@ -27,6 +28,8 @@ struct ContentView: View {
     @State private var isBreathing = false
     @State private var isBlinking = false
     @State private var isResting = false
+    @State private var lastInteractionTime = Date()
+    @State privarte var isSleeping = false
 
     private let maxX: CGFloat = 100
     private let maxY: CGFloat = 70
@@ -74,7 +77,7 @@ struct ContentView: View {
 
     // MARK: - BYTE Appearance
     private func wander() {
-        guard mode == .idle, !isMoving, !isJumping, !isResting else { return }
+        guard mode == .idle, !isMoving, !isJumping, !isResting, !isSleeping else { return }
         moveByter()
     }
 
@@ -111,7 +114,7 @@ struct ContentView: View {
 
     private var byteMouth: some View {
         Group {
-            if mode == .shy {
+            if mode == .shy  || mode == .sleeping {
                 Ellipse().fill(.black).frame(width: 5, height: 7)
             } else {
                 FaceArc(bend: mode == .idle ? 0.65 : 1)
@@ -169,6 +172,9 @@ struct ContentView: View {
                     case .playful:
                         closedEye()
                         eye()
+                    case .sleeping:
+                        closedEye()
+                        closedEye()
                 }
             }
         }
@@ -260,6 +266,9 @@ struct ContentView: View {
     // MARK: - Petting Reactions
 
     private func petByte() {
+        if isSleeping {
+            return //for now
+        }
         guard mode == .idle, !isMoving, !isBlinking, !isJumping, !isResting else { return }
 
         let roll = Int.random(in: 1...100)
@@ -361,7 +370,7 @@ struct ContentView: View {
     }
 
     func jump() {
-        guard !isJumping, !isMoving, mode == .idle, !isResting else { return }
+        guard !isJumping, !isMoving, mode == .idle, !isResting, !isSleeping else { return }
         isJumping = true
 
 
@@ -383,6 +392,17 @@ struct ContentView: View {
             }
         }
     } 
+
+    private func checkSleep() {
+        let timeSinceLastInteraction = Date().timeIntervalSince(lastInteractionTime)
+        if timeSinceLastInteraction > 10 && !isSleeping {
+            isSleeping = true
+            mode = .sleeping
+        } else if timeSinceLastInteraction <= 10 && isSleeping {
+            isSleeping = false
+            mode = .idle
+        }
+    }
 
     // private func performByte() {
     //     let action = ByteAction
