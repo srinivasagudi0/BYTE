@@ -95,6 +95,7 @@ struct ContentView: View {
                 .frame(width: bodySize, height: bodySize)
                 .modifier(bodyTransform)
                 .modifier(motionTransform)
+                .scaleEffect(x: isDragging ? 1.05 : 1, y: isDragging ? 1.05 : 1)
                 .gesture(
                     TapGesture(count: 2) 
                         .exclusively(before: TapGesture(count: 1))
@@ -164,11 +165,25 @@ struct ContentView: View {
 
     private var motionTransform: ByteTransform {
         ByteTransform(
-            offset: CGSize(width: positionX, height: positionY + jumpHeight),
+            offset: CGSize(width: positionX, height: positionY + jumpHeight - (isDragging ? 10 : 0)),
             scale: CGSize(width: jumpScaleX, height: jumpScaleY)
         ) { offset, scale in
             hitRegion.offset = offset
             hitRegion.jumpScale = scale
+        }
+    }
+
+    private func landingBounce() {
+        withAnimation(.easeOut(duration: 0.1)) {
+            jumpScaleX = 1.15
+            jumpScaleY = 0.85
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring(duration: 0.25)) {
+                jumpScaleX = 1
+                jumpScaleY = 1
+            }
         }
     }
 
@@ -264,7 +279,7 @@ struct ContentView: View {
     @ViewBuilder
     private var byteEyes: some View {
         HStack(spacing: 20) {
-            if isBlinking {
+            if isBlinking || isDragging {
                 closedEye()
                 closedEye()
             } else {
@@ -603,6 +618,7 @@ struct ContentView: View {
         .onEnded { _ in
             isDragging = false
             lastInteractionTime = Date()
+            landingBounce()
         }
     }
     // private func performByte() {
