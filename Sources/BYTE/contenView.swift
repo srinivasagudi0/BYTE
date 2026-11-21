@@ -34,7 +34,9 @@ struct ContentView: View {
     @State private var isRoamingPaused = false
     @State private var jumpScaleX: CGFloat = 1
     @State private var jumpScaleY: CGFloat = 1 
+    @State private var showWakeStrech = false
 
+    @State private var isWaking = false
     @State private var snackPhase = 0
     private var isPerforming: Bool { snackPhase != 0 } // eating 
     private var canStartExtraAction: Bool {
@@ -142,7 +144,8 @@ struct ContentView: View {
                 .simultaneousGesture(pickUpGesture)
                 .contextMenu {
                     if mode == .sleeping {
-                        Button("Wake Up") { petByte() }
+                        Button("Wake Up") { wakeUp() }
+                        .disabled(isWaking || isDragging)
                     } else {
                         Button("Sleep Now") { fallAsleep() }
                             .disabled(mode != .idle || isMoving || isJumping )
@@ -250,7 +253,7 @@ struct ContentView: View {
     private var motionTransform: ByteTransform {
         ByteTransform(
             offset: CGSize(width: positionX, height: positionY + jumpHeight - (isDragging ? 10 : 0)),
-            scale: CGSize(width: jumpScaleX, height: jumpScaleY)
+            scale: CGSize(width: jumpScaleX, height: jumpScaleY * (isWaking ? 1.12 : 1.0))
         ) { offset, scale in
             hitRegion.offset = offset
             hitRegion.jumpScale = scale
@@ -509,12 +512,7 @@ struct ContentView: View {
 
     private func petByte() {
         if isSleeping {
-            isSleeping = false
-            lastInteractionTime = Date()
-
-            withAnimation(.spring(duration: 0.35)) {
-                mode = .idle
-            }
+            wakeUp()
             return
         }
         guard mode == .idle, !isMoving, !isBlinking, !isJumping else { return }
@@ -829,6 +827,26 @@ struct ContentView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + biteDelay + 0.3) {
             withAnimation(.easeInOut(duration: 0.3)) {
                 snackPhase = 0
+            }
+        }
+    }
+
+    private func wakeUp() {
+        guard isSleeping, !isWaking, !isDragging else { return }
+        lastInteractionTime = Date()
+        isWaking = true
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.spring(duration: 0.35)) {
+                showWakeStrech = true
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            withAnimation(.spring(duration: 0.35)) {
+                showWakeStrech = false
+                isWaking = false
+                isSleeping = false
+                mode = .idle
             }
         }
     }
