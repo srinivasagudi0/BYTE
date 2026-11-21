@@ -714,18 +714,19 @@ struct ContentView: View {
 
     private struct DreamZzz: View {
 
-        let dreams = ["⭐️", "🌙", "☁️", "💤"]
+        let dreams = ["⭐️", "🌙", "☁️"]
         @State private var dream = "⭐️"
         @State private var isFloating = false
         var body: some View{
             ZStack {
-                Circle()
-                    .fill(Color.indigo.opacity(0.5))
-                    .frame(width: 50, height: 50)
+                // Circle()
+                //     .fill(Color.indigo.opacity(0.5))
+                //     .frame(width: 50, height: 50) didnt like
                     
 
                 Text(dream)
                     .font(.system(size: 20))
+                    .padding(5)
 
             }
             .padding(.trailing, 20)
@@ -822,6 +823,12 @@ struct ContentView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + biteDelay) {
             withAnimation(.easeInOut(duration: 0.3)) {
                 snackPhase = 2
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + biteDelay + 0.3) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                snackPhase = 0
             }
         }
     }
