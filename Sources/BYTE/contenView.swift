@@ -155,7 +155,7 @@ struct ContentView: View {
 
                     Button("Give Snack") {
                         giveSnack()
-                    }.disabled(!canStartExtraAction)
+                    }.disabled(!canStartExtraAction || isHiding)
 
                     Button("QUIT BYTE") {
                         NSApplication.shared.terminate(nil)
@@ -789,14 +789,24 @@ struct ContentView: View {
     //     }
     // }
 
+    @State private var currentSnack = ""
     private func giveSnack() {
-        guard canStartExtraAction else { return }
+        guard canStartExtraAction, !isHiding else { return }
 
         lastInteractionTime = Date()
-        snackPhase = 1
+        let snacks = ["🍪", "🍩", "🍫", "🍬", "🍭", "🍎", "🍌", "🥕"]
+        currentSnack = snacks.randomElement() ?? "🍪"
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            snackPhase = 0
+        let biteDelay: Double = Bool.random() ? 0.55 : 0.95
+
+        withAnimation(.easeInOut(duration: 0.3)) {
+            snackPhase = 1
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + biteDelay) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                snackPhase = 2
+            }
         }
     }
 }
