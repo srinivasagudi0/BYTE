@@ -107,6 +107,22 @@ struct ContentView: View {
                         .offset(y: -13)
                         .allowsHitTesting(false)
                 }
+                .overlay {
+                    if snackPhase != 0 {
+                        Text(currentSnack)
+                            .font(.system(size: 20))
+                            .offset(x: snackPhase == 1 ? 35 : 0, y: 16)
+                            .scaleEffect(snackPhase >= 2 ? 0.45 : 1)
+                            .opacity(snackPhase >= 2 ? 0 : 1)
+                            .transition(.opacity)
+                            .allowsHitTesting(false)
+                    }
+                }
+                .scaleEffect(
+                    x: snackPhase == 1 || snackPhase == 2 ? 1.06 : 1,
+                    y: snackPhase == 1 || snackPhase == 2 ? 0.92 : 1,            
+                    anchor: .bottom
+                )
                 .modifier(bodyTransform)
                 .modifier(motionTransform)
                 .scaleEffect(x: isDragging ? 1.05 : 1, y: isDragging ? 1.05 : 1)
