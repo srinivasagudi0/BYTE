@@ -35,6 +35,12 @@ struct ContentView: View {
     @State private var jumpScaleX: CGFloat = 1
     @State private var jumpScaleY: CGFloat = 1 
 
+    @State private var snackPhase = 0
+    private var isPerforming: Bool { snackPhase != 0 } // eating 
+    private var canStartExtraAction: Bool {
+        mode == .idle && !isPerforming && !isMoving && !isJumping && !isDragging && !isResting && !isBlinking
+    }
+    
     @State private var isDragging = false
     @State private var dragStart = CGSize.zero
     @State private var isHiding = false
@@ -144,6 +150,7 @@ struct ContentView: View {
                         Text("Beanie").tag("Beanie")
                         Text("Crown").tag("Crown")
                     }
+                    
                     Divider()
 
                     Button("QUIT BYTE") {
