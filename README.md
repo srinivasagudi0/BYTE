@@ -9,4 +9,10 @@ Byte is built using Swift. It is a small circular pet that constantly roams arou
 - Byte falls asleep when you didn't interact with it for a while.
 - Byte can be customized with different accessories and colors.
 - Byte responds to you mouse:
-- - 
+- - Pet it to make it happy, playful or even shy.
+- - double click to make it jump around.
+- - Right click to make it do several things like sleep, wake up, jump, and eat.
+- Customize bytes appearance with 3 different colors and 2 different accessories.
+
+I think that is all for now. I think this project is done.
+

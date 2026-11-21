@@ -16,7 +16,6 @@ private enum ByteMood: Equatable {
 //     // like jumping
 //     // sneaky or truoble making option
 // }
-
 struct ContentView: View {
     private let bodySize: CGFloat = 100
     // @State private var positionX: CGFloat = 0
@@ -33,16 +32,20 @@ struct ContentView: View {
     @State private var isSleeping = false
     @State private var isRoamingPaused = false
     @State private var jumpScaleX: CGFloat = 1
-    @State private var jumpScaleY: CGFloat = 1 
+    @State private var jumpScaleY: CGFloat = 1
     @State private var showWakeStrech = false
 
     @State private var isWaking = false
     @State private var snackPhase = 0
-    private var isPerforming: Bool { snackPhase != 0 } // eating 
+    @State private var isDizzy = false
+    @State private var petCount = 0
+    @State private var petStreakStart: Date?
+    @State private var isCelebratingPets = false
+
+    private var isPerforming: Bool { snackPhase != 0 || isWaking || isDizzy }
     private var canStartExtraAction: Bool {
         mode == .idle && !isPerforming && !isMoving && !isJumping && !isDragging && !isResting && !isBlinking
     }
-    
     @State private var isDragging = false
     @State private var dragStart = CGSize.zero
     @State private var isHiding = false
@@ -73,14 +76,14 @@ struct ContentView: View {
     }
 
     private var maxX: CGFloat {
-        // Keep the 100-point pet (including its largest scale) inside the
-        // full-screen window. Positions are centered around the window.
+    // Keep the 100-point pet (including its largest scale) inside the
+    // full-screen window. Positions are centered around the window.
         max(0, (NSScreen.main?.frame.width ?? 1000) / 2 - 65)
     }
 
     private var maxY: CGFloat {
-        // Leave room for BYTE's 110-point jump so it cannot leave the top
-        // edge while jumping from its highest roaming position.
+    // Leave room for BYTE's 110-point jump so it cannot leave the top
+    // edge while jumping from its highest roaming position.
         max(0, (NSScreen.main?.frame.height ?? 700) / 2 - 170)
     }
 
@@ -122,23 +125,29 @@ struct ContentView: View {
                 }
                 .scaleEffect(
                     x: snackPhase == 1 || snackPhase == 2 ? 1.06 : 1,
-                    y: snackPhase == 1 || snackPhase == 2 ? 0.92 : 1,            
+                    y: snackPhase == 1 || snackPhase == 2 ? 0.92 : 1,
                     anchor: .bottom
                 )
+                .overlay(alignment: .top) {
+                    if isDizzy {
+                        DizzyStars()
+                            .offset(y: -22)
+                            .allowsHitTesting(false)
+                    }
+                }
                 .modifier(bodyTransform)
                 .modifier(motionTransform)
                 .scaleEffect(x: isDragging ? 1.05 : 1, y: isDragging ? 1.05 : 1)
                 .gesture(
-                    TapGesture(count: 2) 
+                    TapGesture(count: 2)
                         .exclusively(before: TapGesture(count: 1))
-                        .onEnded { result in 
+                        .onEnded { result in
                             switch result {
-                                case .first(_):
+                                case .first:
                                     jump()
-                                case .second(_):
+                                case .second:
                                     petByte()
                             }
-
                         }
                 )
                 .simultaneousGesture(pickUpGesture)
@@ -148,11 +157,10 @@ struct ContentView: View {
                         .disabled(isWaking || isDragging)
                     } else {
                         Button("Sleep Now") { fallAsleep() }
-                            .disabled(mode != .idle || isMoving || isJumping )
+                            .disabled(mode != .idle || isMoving || isJumping || isDragging || isHiding || isPerforming)
                     }
 
                     Divider()
-                    
                     Button(isRoamingPaused ? "Resume Roaming" : "Pause Roaming") {
                         isRoamingPaused.toggle()
                     }
@@ -169,7 +177,6 @@ struct ContentView: View {
                         Text("Beanie").tag("Beanie")
                         Text("Crown").tag("Crown")
                     }
-                    
                     Divider()
 
                     Button("Give Snack") {
@@ -188,7 +195,7 @@ struct ContentView: View {
         .background(DesktopWindow(hitRegion: hitRegion, bodySize: bodySize).allowsHitTesting(false))
         .onReceive(timer) { _ in
             checkSleep()
-            guard !isRoamingPaused, !isDragging, !isHiding else { return }
+            guard !isRoamingPaused, !isDragging, !isHiding, !isPerforming else { return }
 
             let roamChance = Int.random(in: 1...10)
             if roamChance == 1 {
@@ -223,16 +230,16 @@ struct ContentView: View {
         let side: CGFloat = Bool.random() ? 1 : -1
         let edgeX = side * maxX
 
-        // Run toward the edge
+    // Run toward the edge
         move(toX: edgeX, y: oldY, duration: 0.8)
 
-        // Peek slightly inward
+    // Peek slightly inward
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
             withAnimation(.easeInOut(duration: 0.25)) {
                 positionX = edgeX - side * 25
             }
 
-            // Wait, then return
+    // Wait, then return
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 move(toX: oldX, y: oldY, duration: 0.8)
 
@@ -261,6 +268,13 @@ struct ContentView: View {
         }
     }
 
+    private func byteSpring(duration: Double, bounce: Double = 0) -> Animation {
+        if #available(macOS 14.0, *) {
+            return .spring(duration: duration, bounce: bounce)
+        }
+        return .spring(response: duration, dampingFraction: 0.85 - bounce)
+    }
+
     private func landingBounce() {
         withAnimation(.easeOut(duration: 0.1)) {
             jumpScaleX = 1.15
@@ -268,7 +282,7 @@ struct ContentView: View {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.spring(duration: 0.25)) {
+            withAnimation(byteSpring(duration: 0.25)) {
                 jumpScaleX = 1
                 jumpScaleY = 1
             }
@@ -308,7 +322,7 @@ struct ContentView: View {
         }
         .contentShape(Circle())
         .overlay(alignment: .topTrailing) {
-            if mode == .sleeping {
+            if mode == .sleeping && !isWaking {
                 SleepZzz()
                     .padding(.top, 12)
                     .padding(.trailing, 20)
@@ -317,13 +331,13 @@ struct ContentView: View {
         }
         .overlay(alignment: .topTrailing) {
                     if mode == .happy {
-                        HeartPop()
+                        HeartPop(isStreak: isCelebratingPets)
                             .padding(.top, 25)
                             .allowsHitTesting(false)
                     }
                 }
         .overlay(alignment: .topTrailing) {
-            if mode == .sleeping {
+            if mode == .sleeping && !isWaking {
                 DreamZzz()
                     .padding(.top, 12)
                     .padding(.trailing, 20)
@@ -340,7 +354,8 @@ struct ContentView: View {
                     .frame(width: 8, height: 7)
             }
             else if mode == .shy  || mode == .sleeping {
-                Ellipse().fill(.black).frame(width: 5, height: 7)
+                Ellipse().fill(.black)
+                    .frame(width: showWakeStrech ? 9 : 5, height: showWakeStrech ? 12 : 7)
             } else {
                 FaceArc(bend: mode == .idle ? 0.65 : 1)
                 .stroke(.black, style: StrokeStyle(
@@ -360,8 +375,8 @@ struct ContentView: View {
     }
 
     private func eye(
-            width: CGFloat = 10,
-            height: CGFloat = 12
+width: CGFloat = 10,
+height: CGFloat = 12
         ) -> some View {
             Capsule()
             .fill(Color.black)
@@ -376,11 +391,10 @@ struct ContentView: View {
             }
             .frame(width: 16, height: 16)
         }
-     
     @ViewBuilder
     private var byteEyes: some View {
         HStack(spacing: 20) {
-            if isBlinking || isDragging {
+            if isBlinking || isDragging || isDizzy {
                 closedEye()
                 closedEye()
             } else {
@@ -398,8 +412,13 @@ struct ContentView: View {
                         closedEye()
                         eye()
                     case .sleeping:
-                        closedEye()
-                        closedEye()
+                        if showWakeStrech {
+                            eye()
+                            eye()
+                        } else {
+                            closedEye()
+                            closedEye()
+                        }
                 }
             }
         }
@@ -435,7 +454,6 @@ struct ContentView: View {
     //         }
     //     }
     // }
-
     private func closedEye() -> some View {
         FaceArc(bend: -1)
             .stroke(.black, style: StrokeStyle(
@@ -461,7 +479,6 @@ struct ContentView: View {
         }
 
     // MARK: - Movement
-
     private func blinkWhileVisible() {
         guard mode == .idle,!isBlinking else { return }
         guard Int.random(in: 1...3) == 3 else { return } // random chance not to blink
@@ -472,8 +489,6 @@ struct ContentView: View {
             isBlinking = false
         }
     }
-
-    
 
     private func moveByter(duration: Double = 1.0) {
         move(
@@ -493,7 +508,7 @@ struct ContentView: View {
 
     private func diagonalTarget(
         from current: CGFloat,
-        limit: CGFloat
+limit: CGFloat
     ) -> CGFloat {
         let step = CGFloat.random(in: 45...70)
 
@@ -507,19 +522,34 @@ struct ContentView: View {
         return target
     }
 
-    
-
     // MARK: - Petting Reactions
+    private func recordPet(at now: Date) -> Bool {
+        // Count three successful pets within eight seconds.
+        if let start = petStreakStart, now.timeIntervalSince(start) <= 8 {
+            petCount += 1
+        } else {
+            petStreakStart = now
+            petCount = 1
+        }
+
+        guard petCount == 3 else { return false }
+        petCount = 0
+        petStreakStart = nil
+        return true
+    }
 
     private func petByte() {
         if isSleeping {
             wakeUp()
             return
         }
-        guard mode == .idle, !isMoving, !isBlinking, !isJumping else { return }
-        lastInteractionTime = Date()
+        guard mode == .idle, !isMoving, !isBlinking, !isJumping,
+              !isDragging, !isHiding, !isPerforming else { return }
+        let now = Date()
+        lastInteractionTime = now
+        isCelebratingPets = recordPet(at: now)
 
-        let roll = Int.random(in: 1...100)
+        let roll = isCelebratingPets ? 1 : Int.random(in: 1...100)
         let reaction: ByteMood
 
         switch roll {
@@ -533,14 +563,13 @@ struct ContentView: View {
             reaction = .playful
         }
 
-        withAnimation(.spring(duration: 0.35)) {
+        withAnimation(byteSpring(duration: 0.35)) {
             mode = reaction
         }
 
         switch reaction {
         case .happy:
             break
-        
         case .sleeping:
             break
 
@@ -561,16 +590,17 @@ struct ContentView: View {
         DispatchQueue.main.asyncAfter(
             deadline: .now() + 1.2
         ) {
-            withAnimation(.spring(duration: 0.35)) {
+            withAnimation(byteSpring(duration: 0.35)) {
                 mode = .idle
+                isCelebratingPets = false
             }
         }
     }
 
     private func move(
         toX x: CGFloat,
-        y: CGFloat,
-        duration: Double
+y: CGFloat,
+duration: Double
     ) {
         guard !isMoving else { return }
         isMoving = true
@@ -590,11 +620,11 @@ struct ContentView: View {
         }
     }
 
-    // make byte breathe 
+    // make byte breathe
     func breathe() {
         guard !isBreathing else { return }
         withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
-            // scale the byte up and down
+    // scale the byte up and down
             isBreathing = true
         }
     }
@@ -619,7 +649,8 @@ struct ContentView: View {
     }
 
     func jump() {
-        guard !isJumping, !isMoving, mode == .idle, !isResting, !isSleeping, !isHiding else { return }
+        guard !isJumping, !isMoving, mode == .idle, !isResting, !isSleeping, !isHiding,
+              !isDragging, !isPerforming else { return }
         isJumping = true
 
         withAnimation(.easeOut(duration: 0.3)) {
@@ -630,7 +661,7 @@ struct ContentView: View {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
 
-            // Falling
+    // Falling
             withAnimation(.easeIn(duration: 0.3)) {
                 jumpHeight = 0
                 jumpScaleX = 1
@@ -639,15 +670,15 @@ struct ContentView: View {
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
 
-                // Landing: wider and shorter
+    // Landing: wider and shorter
                 withAnimation(.easeOut(duration: 0.1)) {
                     jumpScaleX = 1.15
                     jumpScaleY = 0.85
                 }
 
-                // Recover
+    // Recover
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation(.spring(duration: 0.25)) {
+                    withAnimation(byteSpring(duration: 0.25)) {
                         jumpScaleX = 1
                         jumpScaleY = 1
                     }
@@ -670,7 +701,8 @@ struct ContentView: View {
     }
 
     private func fallAsleep() {
-        guard mode == .idle, !isSleeping, !isMoving, !isJumping else { return }
+        guard mode == .idle, !isSleeping, !isMoving, !isJumping,
+              !isDragging, !isHiding, !isPerforming else { return }
 
         withAnimation(.easeInOut(duration: 0.4)) {
             isSleeping = true
@@ -691,15 +723,29 @@ struct ContentView: View {
                     isFloating = true
                 }
             }
-        }  
+        }
     }
 
     private struct HeartPop: View {
+        let isStreak: Bool
         @State private var floating = false
 
         var body: some View {
-            Image(systemName: "heart.fill")
-                .font(.system(size: 16))
+            HStack(spacing: floating ? 8 : 3) {
+                if isStreak {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 10))
+                        .rotationEffect(.degrees(-18))
+                }
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 16))
+                    .offset(y: isStreak ? -4 : 0)
+                if isStreak {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 10))
+                        .rotationEffect(.degrees(18))
+                }
+            }
                 .foregroundColor(.pink)
                 .offset(y: floating ? -25 : 0)
                 .opacity(floating ? 0 : 1)
@@ -718,11 +764,9 @@ struct ContentView: View {
         @State private var isFloating = false
         var body: some View{
             ZStack {
-                // Circle()
-                //     .fill(Color.indigo.opacity(0.5))
-                //     .frame(width: 50, height: 50) didnt like
-                    
-
+    // Circle()
+    //     .fill(Color.indigo.opacity(0.5))
+    //     .frame(width: 50, height: 50) didnt like
                 Text(dream)
                     .font(.system(size: 20))
                     .padding(5)
@@ -733,9 +777,9 @@ struct ContentView: View {
             .opacity(isFloating ? 0.15 : 0.9)
             .onAppear {
                 withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: false)) {
-                    isFloating = true   
+                    isFloating = true
                 }
-            }   
+            }
             .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
                 dream = dreams.randomElement() ?? "⭐"
             }
@@ -762,49 +806,77 @@ struct ContentView: View {
             duration: 0.5
         )
 
-
-
-
-
-
-
-
     }
 
     private var pickUpGesture: some Gesture {
-    DragGesture(minimumDistance: 8)
-        .onChanged { value in
-            if !isDragging {
-                guard !isMoving, !isJumping else { return }
+        DragGesture(minimumDistance: 8, coordinateSpace: .global)
+            .onChanged { value in
+                guard !isPerforming, !isHiding else { return }
 
-                isDragging = true
-                dragStart = CGSize(
-                    width: positionX,
-                    height: positionY
-                )
+                if !isDragging {
+                    guard !isMoving, !isJumping,
+                          mode == .idle || mode == .sleeping else { return }
+
+                    isDragging = true
+                    dragStart = CGSize(
+                        width: positionX,
+                        height: positionY
+                    )
+                }
+
+                positionX = min(maxX, max(-maxX,
+                    dragStart.width + value.translation.width
+                ))
+
+                positionY = min(maxY, max(-maxY,
+                    dragStart.height + value.translation.height
+                ))
             }
+            .onEnded { value in
+                guard isDragging else { return }
 
-            positionX = min(maxX, max(-maxX,
-                dragStart.width + value.translation.width
-            ))
+                isDragging = false
+                lastInteractionTime = Date()
+                landingBounce()
 
-            positionY = min(maxY, max(-maxY,
-                dragStart.height + value.translation.height
-            ))
-        }
-        .onEnded { _ in
-            isDragging = false
-            lastInteractionTime = Date()
-            landingBounce()
+                let distance = hypot(value.translation.width, value.translation.height)
+                guard mode == .idle, distance >= 180 else { return }
+
+                isDizzy = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    isDizzy = false
+                }
+            }
+    }
+
+    private struct DizzyStars: View {
+        @State private var spinning = false
+
+        var body: some View {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkle")
+                Image(systemName: "star.fill")
+                    .offset(y: -5)
+                Image(systemName: "sparkle")
+            }
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(.yellow)
+            .rotationEffect(.degrees(spinning ? 360 : 0))
+            .opacity(spinning ? 0.1 : 1)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.75)) {
+                    spinning = true
+                }
+            }
         }
     }
+
     // private func performByte() {
     //     let action = ByteAction
     //     switch action {
-    //         case .blinking: return  
+    //         case .blinking: return
     //     }
     // }
-
     @State private var currentSnack = ""
     private func giveSnack() {
         guard canStartExtraAction, !isHiding else { return }
@@ -838,12 +910,12 @@ struct ContentView: View {
         isWaking = true
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            withAnimation(.spring(duration: 0.35)) {
+            withAnimation(byteSpring(duration: 0.35)) {
                 showWakeStrech = true
             }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.68) {
-            withAnimation(.spring(duration: 0.4, bounce: 0.2)) {
+            withAnimation(byteSpring(duration: 0.4, bounce: 0.2)) {
                 showWakeStrech = false
                 isWaking = false
                 isSleeping = false
@@ -852,4 +924,3 @@ struct ContentView: View {
         }
     }
 }
-
