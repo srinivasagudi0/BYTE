@@ -252,8 +252,9 @@ struct ContentView: View {
 
     private var motionTransform: ByteTransform {
         ByteTransform(
-            offset: CGSize(width: positionX, height: positionY + jumpHeight - (isDragging ? 10 : 0)),
-            scale: CGSize(width: jumpScaleX, height: jumpScaleY * (isWaking ? 1.12 : 1.0))
+            offset: CGSize(width: positionX, height: positionY + jumpHeight - (isDragging || showWakeStrech ? 10 : 0)),
+            scale: CGSize(width: jumpScaleX * (showWakeStrech ? 0.91 : 1),
+                          height: jumpScaleY * (showWakeStrech ? 1.22 : 1))
         ) { offset, scale in
             hitRegion.offset = offset
             hitRegion.jumpScale = scale
@@ -841,8 +842,8 @@ struct ContentView: View {
                 showWakeStrech = true
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            withAnimation(.spring(duration: 0.35)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.68) {
+            withAnimation(.spring(duration: 0.4, bounce: 0.2)) {
                 showWakeStrech = false
                 isWaking = false
                 isSleeping = false
