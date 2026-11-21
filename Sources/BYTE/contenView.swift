@@ -153,6 +153,10 @@ struct ContentView: View {
                     
                     Divider()
 
+                    Button("Give Snack") {
+                        giveSnack()
+                    }.disabled(!canStartExtraAction)
+
                     Button("QUIT BYTE") {
                         NSApplication.shared.terminate(nil)
                     }
@@ -310,7 +314,12 @@ struct ContentView: View {
 
     private var byteMouth: some View {
         Group {
-            if mode == .shy  || mode == .sleeping {
+            if snackPhase == 1 {
+                Ellipse()
+                    .fill(.black)
+                    .frame(width: 8, height: 7)
+            }
+            else if mode == .shy  || mode == .sleeping {
                 Ellipse().fill(.black).frame(width: 5, height: 7)
             } else {
                 FaceArc(bend: mode == .idle ? 0.65 : 1)
@@ -779,5 +788,16 @@ struct ContentView: View {
     //         case .blinking: return  
     //     }
     // }
+
+    private func giveSnack() {
+        guard canStartExtraAction else { return }
+
+        lastInteractionTime = Date()
+        snackPhase = 1
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            snackPhase = 0
+        }
+    }
 }
 
